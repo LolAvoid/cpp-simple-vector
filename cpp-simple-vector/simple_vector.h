@@ -49,8 +49,14 @@ public:
 
     SimpleVector& operator=(const SimpleVector& other) {
         if (this != &other) {
-            SimpleVector temp(other);
-            Swap(temp);
+            if (other.IsEmpty()) {
+                Clear();
+                capacity_ = 0;
+                data_.Swap(ArrayPtr<T>());
+            } else {
+                SimpleVector temp(other);
+                Swap(temp);
+            }
         }
         return *this;
     }
@@ -62,10 +68,8 @@ public:
     SimpleVector& operator=(SimpleVector&& other) noexcept {
         if (this != &other) {
             data_.Swap(other.data_);
-            size_ = other.size_;
-            capacity_ = other.capacity_;
-            other.size_ = 0;
-            other.capacity_ = 0;
+            size_ = std::exchange(other.size_, 0);
+            capacity_ = std::exchange(other.capacity_, 0);
         }
         return *this;
     }
@@ -175,9 +179,8 @@ public:
     }
 
     void PopBack() noexcept {
-        if (size_ > 0) {
-            --size_;
-        }
+        assert(size_ > 0 && "PopBack() called on empty vector");
+        --size_;
     }
 
     Iterator Erase(ConstIterator pos) {
@@ -216,7 +219,7 @@ bool operator<(const SimpleVector<T>& lhs, const SimpleVector<T>& rhs) {
 
 template <typename T>
 bool operator<=(const SimpleVector<T>& lhs, const SimpleVector<T>& rhs) {
-    return (lhs < rhs) || (lhs == rhs);
+    return !(rhs < lhs);
 }
 
 template <typename T>
@@ -226,5 +229,5 @@ bool operator>(const SimpleVector<T>& lhs, const SimpleVector<T>& rhs) {
 
 template <typename T>
 bool operator>=(const SimpleVector<T>& lhs, const SimpleVector<T>& rhs) {
-    return (lhs > rhs) || (lhs == rhs);
+    return !(lhs < rhs);
 }
