@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <utility> // Для std::swap
 
 template <typename T>
 class ArrayPtr {
@@ -21,6 +22,15 @@ public:
     ArrayPtr(ArrayPtr&& other) noexcept {
         data_ = other.data_;
         other.data_ = nullptr;
+    }
+
+    ArrayPtr& operator=(ArrayPtr&& other) noexcept {
+        if (this != &other) {
+            delete[] data_; 
+            data_ = other.data_; 
+            other.data_ = nullptr; 
+        }
+        return *this;
     }
 
     ~ArrayPtr() {
